@@ -12,6 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.dungtran.eshopper.entities.Product;
 import com.dungtran.eshopper.entities.User;
@@ -141,6 +142,68 @@ public class ShopController {
 			pageUrl = CurrentUrl.addParamsString(pageUrl, "endPrice", endPrice);
 			model.addAttribute("pageUrl", pageUrl);
 			return "shop";
+		}
+	}
+	
+	
+	//API
+	
+	@GetMapping("/api/{gender_category}")
+	@ResponseBody
+	public Page<Product> getPageProduct(@PathVariable(name = "gender_category", required = true) String gc,
+			@RequestParam(name = "keyword", required = false) String keyword,
+			@RequestParam(name = "startPrice", required = false) String startPrice,
+			@RequestParam(name = "endPrice", required = false) String endPrice,
+			@RequestParam(name = "category", required = false) String category,
+			@RequestParam(name = "page", required = false) Optional<Integer> page){
+		
+		Pageable pageable = PageRequest.of(page.orElse(0), 9);
+		
+		if (startPrice == null) {
+			if (keyword == null && category != null) {
+				Page<Product> products = ps.findByCategory(gc, category, pageable);
+				return products;
+			} else if (keyword != null && category == null) {
+				Page<Product> products = ps.findByNameAndGender(gc, keyword, pageable);
+				return products;
+			} else if (keyword == null && category == null) {
+				Page<Product> products = ps.findByGenderCategory(gc, pageable);
+				return products;
+			} else
+				return null;
+
+		} else {
+			if (keyword == null && category != null) {
+				Page<Product> products = ps.findByGenderCategoryPriceCategory(gc, category, Long.valueOf(startPrice),
+						Long.valueOf(endPrice), pageable);
+				return products;
+			} else if (keyword != null && category == null) {
+				Page<Product> products = ps.findByGenderCategoryPriceKeyword(gc, keyword, Long.valueOf(startPrice),
+						Long.valueOf(endPrice), pageable);
+				return products;
+			} else if (keyword == null && category == null) {
+				Page<Product> products = ps.findByGenderCategoryAndPrice(gc, Long.valueOf(startPrice),
+						Long.valueOf(endPrice), pageable);
+				return products;
+			} else {
+				return null;
+			}
+		}
+	}
+	
+	@GetMapping("/api/search")
+	@ResponseBody
+	public Page<Product> getProductByKeyword(@RequestParam(name = "keyword", required = true) String keyword,
+			@RequestParam(name = "page", required = false) Optional<Integer> page,
+			@RequestParam(name = "startPrice", required = false) String startPrice,
+			@RequestParam(name = "endPrice", required = false) String endPrice){
+		Pageable pageable = PageRequest.of(page.orElse(0), 9);
+		if (startPrice == null) {
+			Page<Product> products = ps.findByName(keyword, pageable);
+			return products;
+		} else {
+			Page<Product> products = ps.findByNameAndPrice(keyword, Long.valueOf(startPrice), Long.valueOf(endPrice), pageable);
+			return products;
 		}
 	}
 
