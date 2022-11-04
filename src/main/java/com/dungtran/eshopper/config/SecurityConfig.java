@@ -24,11 +24,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			.passwordEncoder(NoOpPasswordEncoder.getInstance());
 
 	}
+	
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.authorizeRequests()
-				.antMatchers("/checkout","/cart")
+				.antMatchers("/checkout","/cart","/api/cart")
 					.authenticated()
 				.antMatchers("/","/**").permitAll()
 			.and()
