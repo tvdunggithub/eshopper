@@ -14,11 +14,11 @@
   </head>
 
 <body>
-	<div th:if="${error!=null}">Check your username and password</div>
 	<div class="wapper">
       <div class="wapper-heading">
         <h1>Login</h1>
       </div>
+      <div th:if="${param.error}"><h3 style="color:red">Check your username and password</h3></div>
       <form method="post" th:action="@{/login/process}" id="loginForm">
         <div class="input__field">
           <input name="username" id="username" type="text" placeholder="User Name" />
