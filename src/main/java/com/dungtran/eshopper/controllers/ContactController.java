@@ -1,13 +1,33 @@
 package com.dungtran.eshopper.controllers;
 
-import org.springframework.web.bind.annotation.GetMapping;
+import javax.validation.Valid;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.dungtran.eshopper.entities.Mail;
+import com.dungtran.eshopper.services.MailSevice;
+
+@Controller
 public class ContactController {
 	
+	@Autowired
+	MailSevice ms;
+	
 	@GetMapping("/contact")
-	public String getContact() {
+	public String getContact(@ModelAttribute("mail") Mail mail) {
 		
-		return "contactPage";
+		return "contact";
+	}
+	
+	@PostMapping("/contact")
+	public String sendMail(@Valid @ModelAttribute("mail") Mail mail) {
+		ms.sendEmail(mail);
+		return "contact";
 	}
 
 }

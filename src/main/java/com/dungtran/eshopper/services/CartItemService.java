@@ -7,6 +7,7 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.dungtran.eshopper.config.CustomOAuth2User;
 import com.dungtran.eshopper.dao.ProductDao;
 import com.dungtran.eshopper.entities.CartItem;
 import com.dungtran.eshopper.entities.Order;
@@ -32,5 +33,6 @@ public interface CartItemService {
 	public int countByOrderAndUser(Order order,User user);
 	
 	public void save(CartItem cartItem);
+
 	
 }

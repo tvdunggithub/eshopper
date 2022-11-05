@@ -19,6 +19,6 @@ public interface OrderService {
 	public void save(Order order);
 	
 	public Order findByUserAndDate(User user,Date date);
-	
-	public List<Order> findByUser(User user);
+
+	public List<Order> findByUser(User loginUser);
 }

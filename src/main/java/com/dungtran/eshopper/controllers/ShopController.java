@@ -14,10 +14,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.dungtran.eshopper.config.CustomOAuth2User;
 import com.dungtran.eshopper.entities.Product;
 import com.dungtran.eshopper.entities.User;
 import com.dungtran.eshopper.services.CartItemService;
 import com.dungtran.eshopper.services.ProductService;
+import com.dungtran.eshopper.services.UserService;
 import com.dungtran.eshopper.url.CurrentUrl;
 
 @Controller
@@ -28,9 +30,13 @@ public class ShopController {
 	
 	@Autowired
 	CartItemService cs;
+	
+	@Autowired
+	UserService us;
 
 	@GetMapping("/{gender_category}")
-	public String getAllProduct(Model model,@AuthenticationPrincipal User user, 
+	public String getAllProduct(Model model,@AuthenticationPrincipal User user,
+			@AuthenticationPrincipal CustomOAuth2User oath2,
 			@RequestParam(name = "keyword", required = false) String keyword,
 			@PathVariable(name = "gender_category", required = true) String gc,
 			@RequestParam(name = "category", required = false) String category,
@@ -38,11 +44,12 @@ public class ShopController {
 			@RequestParam(name = "endPrice", required = false) String endPrice,
 			@RequestParam(name = "page", required = false) Optional<Integer> page,
 			@RequestParam(name = "flag", required = false) String flag) {
+		User loginUser = us.getLoginUser(user, oath2);
 		Pageable pageable = PageRequest.of(page.orElse(0), 9);
 		String urlWithoutParam = CurrentUrl.addFirstParamString(gc, "", "");
 		model.addAttribute("urlWithoutParam", urlWithoutParam);
-		if (user != null) {
-			int countCart = cs.countByOrderAndUser(null, user);
+		if (loginUser != null) {
+			int countCart = cs.countByOrderAndUser(null, loginUser);
 			model.addAttribute("cartSize", countCart);
 		}
 		if (startPrice == null) {
@@ -117,14 +124,16 @@ public class ShopController {
 
 	@GetMapping("/search")
 	public String searchProduct(Model model,@AuthenticationPrincipal User user,
+			@AuthenticationPrincipal CustomOAuth2User oath2,
 			@RequestParam(name = "keyword", required = true) String keyword,
 			@RequestParam(name = "page", required = false) Optional<Integer> page,
 			@RequestParam(name = "startPrice", required = false) String startPrice,
 			@RequestParam(name = "endPrice", required = false) String endPrice) {
+		User loginUser = us.getLoginUser(user, oath2);
 		Pageable pageable = PageRequest.of(page.orElse(0), 9);
 		String url = CurrentUrl.addFirstParamString("search", "keyword", keyword);
 		String pageUrl = CurrentUrl.addFirstParamString("search", "keyword", keyword);
-		if (user != null) {
+		if (loginUser != null) {
 			int countCart = cs.countByOrderAndUser(null, user);
 			model.addAttribute("cartSize", countCart);
 		}
@@ -191,20 +200,5 @@ public class ShopController {
 		}
 	}
 	
-	@GetMapping("/api/search")
-	@ResponseBody
-	public Page<Product> getProductByKeyword(@RequestParam(name = "keyword", required = true) String keyword,
-			@RequestParam(name = "page", required = false) Optional<Integer> page,
-			@RequestParam(name = "startPrice", required = false) String startPrice,
-			@RequestParam(name = "endPrice", required = false) String endPrice){
-		Pageable pageable = PageRequest.of(page.orElse(0), 9);
-		if (startPrice == null) {
-			Page<Product> products = ps.findByName(keyword, pageable);
-			return products;
-		} else {
-			Page<Product> products = ps.findByNameAndPrice(keyword, Long.valueOf(startPrice), Long.valueOf(endPrice), pageable);
-			return products;
-		}
-	}
 
 }

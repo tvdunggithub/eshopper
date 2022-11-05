@@ -9,11 +9,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dungtran.eshopper.entities.Order;
+import com.dungtran.eshopper.config.CustomOAuth2User;
 import com.dungtran.eshopper.entities.Product;
 import com.dungtran.eshopper.entities.User;
 import com.dungtran.eshopper.services.CartItemService;
 import com.dungtran.eshopper.services.ProductService;
+import com.dungtran.eshopper.services.UserService;
 
 @RestController
 @RequestMapping("/api")
@@ -24,16 +25,20 @@ public class CartApi {
 
 	@Autowired
 	CartItemService cs;
+	
+	@Autowired
+	UserService us;
 
 	@PostMapping("/add/{pid}/{quantity}")
 	public String addToCart(HttpServletResponse response, @PathVariable(value = "pid", required = true) String pid,
-			@PathVariable(value = "quantity", required = true) String quantity, @AuthenticationPrincipal User user) {
+			@PathVariable(value = "quantity", required = true) String quantity,@AuthenticationPrincipal User user,@AuthenticationPrincipal CustomOAuth2User oath2) {
 		int subTotal = 0;
-		if (user == null) {
+		User loginUser = us.getLoginUser(user, oath2);
+		if (loginUser == null) {
 			return "You must login";
 		} else {
 			if (pid != null && quantity != null) {
-				cs.addToCart(Integer.parseInt(pid), Integer.parseInt(quantity), user);
+				cs.addToCart(Integer.parseInt(pid), Integer.parseInt(quantity), loginUser);
 			}
 			return "Add to cart successfully!";
 		}
@@ -41,9 +46,10 @@ public class CartApi {
 
 	@PostMapping("/delete/{pid}")
 	public String deleteCart(HttpServletResponse response, @PathVariable(value = "pid", required = true) String pid,
-			@AuthenticationPrincipal User user) {
+			@AuthenticationPrincipal User user,@AuthenticationPrincipal CustomOAuth2User oath2) {
 		Product product = ps.findById(Integer.valueOf(pid)).get();
-		cs.deleteByOrderAndProduct(null, product, user);
+		User loginUser = us.getLoginUser(user, oath2);
+		cs.deleteByOrderAndProduct(null, product, loginUser);
 		return "Delete successfully!";
 	}
 
